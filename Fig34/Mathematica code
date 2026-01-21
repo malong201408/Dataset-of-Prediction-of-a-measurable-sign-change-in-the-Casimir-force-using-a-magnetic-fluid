@@ -1,0 +1,224 @@
+For[j = 1, j <= Length[b], j++,
+  b1 = b[[j]];
+  (*zero frequency energy term 1st equation in L231 of book Parsegian*)
+
+  
+  DeltaAmbar0[q_] := (q*epslA0 - q*epslm0)/(q*epslA0 + q*epslm0);
+  DeltaAm0[q_] := (q*miuA0 - q*mium0)/(q*miuA0 + q*mium0);
+  DeltaBB1bar0[q_] := (q*epslB0 - q*epslB10)/(q*epslB0 + q*epslB10); 
+  DeltaB1mbar0[q_] := (q*epslB10 - q*epslm0)/(q*epslB10 + q*epslm0); 
+  DeltaBB10[q_] := (q*miuB0 - q*miuB10)/(q*miuB0 + q*miuB10); 
+  DeltaB1m0[q_] := (q*miuB10 - q*mium0)/(q*miuB10 + q*mium0); 
+  DeltaBmeffBar0[q_] := (
+   DeltaBB1bar0[q]*E^(-2*q*b1) + DeltaB1mbar0[q])/(
+   1 + DeltaBB1bar0[q]*DeltaB1mbar0[q]*E^(-2*q*b1));
+  DeltaBmeff0[q_] := (DeltaBB10[q]*E^(-2*q*b1) + DeltaB1m0[q])/(
+   1 + DeltaBB10[q]*DeltaB1m0[q]*E^(-2*q*b1)); 
+  (*integrand of TM0, TE0*)
+  
+  intGAmB1BTM0[d_, q_] := 
+   1/2*(kb*Troom)/(2*\[Pi])*q*
+    Log[(1 - DeltaAmbar0[q]*DeltaBmeffBar0[q]*E^(-2*q*d))];
+  intGAmB1BTE0[d_, q_] := 
+   1/2*(kb*Troom)/(2*\[Pi])*q*
+    Log[(1 - DeltaAm0[q]*DeltaBmeff0[q]*E^(-2*q*d))];
+  DintGAmB1BTM0[d_, q_] := -((kb*Troom)/(2*\[Pi]))*
+    q^2*(DeltaAmbar0[q]*DeltaBmeffBar0[q]*E^(-2*q*d))/(1 - 
+       DeltaAmbar0[q]*DeltaBmeffBar0[q]*E^(-2*q*d));
+  DintGAmB1BTE0[d_, q_] := -((kb*Troom)/(2*\[Pi]))*
+    q^2*(DeltaAm0[q]*DeltaBmeff0[q]*E^(-2*q*d))/(1 - 
+       DeltaAm0[q]*DeltaBmeff0[q]*E^(-2*q*d));
+  
+  (*integral of TM0, TE0*)
+  GAmB1BTM0[d_?NumericQ] := 
+   NIntegrate[intGAmB1BTM0[d, q], {q, 0, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  GAmB1BTE0[d_?NumericQ] := 
+   NIntegrate[intGAmB1BTE0[d, q], {q, 0, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  DGAmB1BTM0[d_?NumericQ] := 
+   NIntegrate[DintGAmB1BTM0[d, q], {q, 0, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  DGAmB1BTE0[d_?NumericQ] := 
+   NIntegrate[DintGAmB1BTE0[d, q], {q, 0, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  
+  
+  (*non-zero freuqency energy terms*)
+  DeltaAmbar[p_] := (
+   p*epslA - Sqrt[p^2 - 1 + (epslA*miuA)/(epslm*mium)]*epslm)/(
+   p*epslA + Sqrt[p^2 - 1 + (epslA*miuA)/(epslm*mium)]*epslm);
+  DeltaAm[p_] := (
+   p*miuA - Sqrt[p^2 - 1 + (epslA*miuA)/(epslm*mium)]*mium)/(
+   p*miuA + Sqrt[p^2 - 1 + (epslA*miuA)/(epslm*mium)]*mium); 
+  DeltaBB1bar[p_] := (
+   Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*epslB - 
+    Sqrt[p^2 - 1 + (epslB*miuB)/(epslm*mium)]*epslB1)/(
+   Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*epslB + 
+    Sqrt[p^2 - 1 + (epslB*miuB)/(epslm*mium)]*epslB1); 
+  DeltaB1mbar[p_] := (
+   p*epslB1 - Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*epslm)/(
+   p*epslB1 + Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*epslm); 
+  DeltaBB1[p_] := (
+   Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*miuB - 
+    Sqrt[p^2 - 1 + (epslB*miuB)/(epslm*mium)]*miuB1)/(
+   Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*miuB + 
+    Sqrt[p^2 - 1 + (epslB*miuB)/(epslm*mium)]*miuB1);
+  DeltaB1m[p_] := (
+   p*miuB1 - Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*mium)/(
+   p*miuB1 + Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)]*mium); 
+  r[d_] := ksi*(2*d*Sqrt[epslm]*Sqrt[mium]/c);
+  sB1[p_] := Sqrt[p^2 - 1 + (epslB1*miuB1)/(epslm*mium)];
+  DeltaBmeffBar[d_, p_] := (
+   DeltaBB1bar[p]*E^(-sB1[p]*r[d]*b1/d) + DeltaB1mbar[p])/(
+   1 + DeltaBB1bar[p]*DeltaB1mbar[p]*E^(-sB1[p]*r[d]*b1/d));
+  DeltaBmeff[d_, p_] := (
+   DeltaBB1[p]*E^(-sB1[p]*r[d]*b1/d) + DeltaB1m[p])/(
+   1 + DeltaBB1[p]*DeltaB1m[p]*E^(-sB1[p]*r[d]*b1/d)); 
+  (*integrand of TM, TE*)
+  intGAmB1BTM[d_, p_] := (kb*Troom)/(2*\[Pi]*c^2)*epslm*mium*ksi^2*p*
+    Log[(1 - DeltaAmbar[p]*DeltaBmeffBar[d, p]*E^(-r[d]*p))];
+  intGAmB1BTE[d_, p_] := (kb*Troom)/(2*\[Pi]*c^2)*epslm*mium*ksi^2*p*
+    Log[(1 - DeltaAm[p]*DeltaBmeff[d, p]*E^(-r[d]*p))];
+  DintGAmB1BTM[d_, p_] := -((kb*Troom)/(2*\[Pi]*c^2))*epslm*mium*
+    ksi^2*p^2*(ksi*(2*Sqrt[epslm]*Sqrt[mium]/c))*(DeltaAmbar[p]*
+       DeltaBmeffBar[d, p]*E^(-r[d]*p))/(1 - 
+       DeltaAmbar[p]*DeltaBmeffBar[d, p]*E^(-r[d]*p));
+  DintGAmB1BTE[d_, p_] := -((kb*Troom)/(2*\[Pi]*c^2))*epslm*mium*
+    ksi^2*p^2*(ksi*(2*Sqrt[epslm]*Sqrt[mium]/c))*(DeltaAm[p]*
+       DeltaBmeff[d, p]*E^(-r[d]*p))/(1 - 
+       DeltaAm[p]*DeltaBmeff[d, p]*E^(-r[d]*p));
+  
+  (*integral of TM, TE*)
+  GAmB1BTM[d_?NumericQ] := 
+   NIntegrate[intGAmB1BTM[d, p], {p, 1, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  GAmB1BTE[d_?NumericQ] := 
+   NIntegrate[intGAmB1BTE[d, p], {p, 1, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  DGAmB1BTM[d_?NumericQ] := 
+   NIntegrate[DintGAmB1BTM[d, p], {p, 1, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  DGAmB1BTE[d_?NumericQ] := 
+   NIntegrate[DintGAmB1BTE[d, p], {p, 1, \[Infinity]}, 
+    Method -> {"GlobalAdaptive", "SingularityHandler" -> "IMT"}, 
+    MaxRecursion -> 50];
+  
+  
+  (*Separate TM0, TE0, TM, TE*)
+  (*F0TMnorm1 is the norm of Casimir pressure in the distance range \
+of d1 where the second letter zero is referred to the n=0 term*)
+  (*0.1nm-1nm*)
+  F0TMnorm1 = Table[None, {l, 1, Length[d1]}];
+  F0TEnorm1 = Table[None, {l, 1, Length[d1]}];
+  FTMnorm1 = Table[None, {l, 1, Length[d1]}];
+  FTEnorm1 = Table[None, {l, 1, Length[d1]}];
+  For[i = 1, i <= Length[d1], i++,
+   distance = d1[[i]];
+   
+   F0TMnorm1[[i]] = DGAmB1BTM0[distance]/F0[distance];
+   F0TEnorm1[[i]] = DGAmB1BTE0[distance]/F0[distance];
+   FTMnorm1[[i]] = Total[DGAmB1BTM[distance]]/F0[distance];
+   FTEnorm1[[i]] = Total[DGAmB1BTE[distance]]/F0[distance];
+   ];
+  Export["F0TMnorm1_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1, F0TMnorm1}]];
+  Export["F0TEnorm1_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1, F0TEnorm1}]];
+  Export["FTMnorm1_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1, FTMnorm1}]];
+  Export["FTEnorm1_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1, FTEnorm1}]];
+  
+  
+  (*2nm-10nm*)
+  F0TMnorm10 = Table[None, {l, 1, Length[d10]}];
+  F0TEnorm10 = Table[None, {l, 1, Length[d10]}];
+  FTMnorm10 = Table[None, {l, 1, Length[d10]}];
+  FTEnorm10 = Table[None, {l, 1, Length[d10]}];
+  For[i = 1, i <= Length[d10], i++,
+   distance = d10[[i]];
+   F0TMnorm10[[i]] = DGAmB1BTM0[distance]/F0[distance];
+   F0TEnorm10[[i]] = DGAmB1BTE0[distance]/F0[distance];
+   FTMnorm10[[i]] = Total[DGAmB1BTM[distance]]/F0[distance];
+   FTEnorm10[[i]] = Total[DGAmB1BTE[distance]]/F0[distance];
+   ];
+  Export["F0TMnorm10_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10, F0TMnorm10}]];
+  Export["F0TEnorm10_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10, F0TEnorm10}]];
+  Export["FTMnorm10_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10, FTMnorm10}]];
+  Export["FTEnorm10_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10, FTEnorm10}]];
+  
+  (*20nm-100nm*)
+  F0TMnorm100 = Table[None, {l, 1, Length[d100]}];
+  F0TEnorm100 = Table[None, {l, 1, Length[d100]}];
+  FTMnorm100 = Table[None, {l, 1, Length[d100]}];
+  FTEnorm100 = Table[None, {l, 1, Length[d100]}];
+  For[i = 1, i <= Length[d100], i++,
+   distance = d100[[i]];
+   F0TMnorm100[[i]] = DGAmB1BTM0[distance]/F0[distance];
+   F0TEnorm100[[i]] = DGAmB1BTE0[distance]/F0[distance];
+   FTMnorm100[[i]] = Total[DGAmB1BTM[distance]]/F0[distance];
+   FTEnorm100[[i]] = Total[DGAmB1BTE[distance]]/F0[distance];
+   ];
+  Export["F0TMnorm100_" <> ToString[b1] <> ".dat", 
+   Transpose[{d100, F0TMnorm100}]];
+  Export["F0TEnorm100_" <> ToString[b1] <> ".dat", 
+   Transpose[{d100, F0TEnorm100}]];
+  Export["FTMnorm100_" <> ToString[b1] <> ".dat", 
+   Transpose[{d100, FTMnorm100}]];
+  Export["FTEnorm100_" <> ToString[b1] <> ".dat", 
+   Transpose[{d100, FTEnorm100}]];
+  
+  (*200nm-1000nm*)
+  F0TMnorm1000 = Table[None, {l, 1, Length[d1000]}];
+  F0TEnorm1000 = Table[None, {l, 1, Length[d1000]}];
+  FTMnorm1000 = Table[None, {l, 1, Length[d1000]}];
+  FTEnorm1000 = Table[None, {l, 1, Length[d1000]}];
+  For[i = 1, i <= Length[d1000], i++,
+   distance = d1000[[i]];
+   F0TMnorm1000[[i]] = DGAmB1BTM0[distance]/F0[distance];
+   F0TEnorm1000[[i]] = DGAmB1BTE0[distance]/F0[distance];
+   FTMnorm1000[[i]] = Total[DGAmB1BTM[distance]]/F0[distance];
+   FTEnorm1000[[i]] = Total[DGAmB1BTE[distance]]/F0[distance];
+   ];
+  Export["F0TMnorm1000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1000, F0TMnorm1000}]];
+  Export["F0TEnorm1000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1000, F0TEnorm1000}]];
+  Export["FTMnorm1000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1000, FTMnorm1000}]];
+  Export["FTEnorm1000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d1000, FTEnorm1000}]];
+  
+  (*2000nm-10000nm*)
+  F0TMnorm10000 = Table[None, {l, 1, Length[d10000]}];
+  F0TEnorm10000 = Table[None, {l, 1, Length[d10000]}];
+  FTMnorm10000 = Table[None, {l, 1, Length[d10000]}];
+  FTEnorm10000 = Table[None, {l, 1, Length[d10000]}];
+  For[i = 1, i <= Length[d10000], i++,
+   distance = d10000[[i]];
+   F0TMnorm10000[[i]] = DGAmB1BTM0[distance]/F0[distance];
+   F0TEnorm10000[[i]] = DGAmB1BTE0[distance]/F0[distance];
+   FTMnorm10000[[i]] = Total[DGAmB1BTM[distance]]/F0[distance];
+   FTEnorm10000[[i]] = Total[DGAmB1BTE[distance]]/F0[distance];
+   ];
+  Export["F0TMnorm10000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10000, F0TMnorm10000}]];
+  Export["F0TEnorm10000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10000, F0TEnorm10000}]];
+  Export["FTMnorm10000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10000, FTMnorm10000}]];
+  Export["FTEnorm10000_" <> ToString[b1] <> ".dat", 
+   Transpose[{d10000, FTEnorm10000}]];
+  ];
